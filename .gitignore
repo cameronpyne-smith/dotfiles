@@ -1,4 +1,4 @@
-# Never commit Claude Code credentials / machine-local overrides
+# Secrets
 .credentials.json
 *.local.json
 settings.local.json
