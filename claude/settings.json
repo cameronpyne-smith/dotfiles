@@ -1,0 +1,11 @@
+{
+  "model": "opus[1m]",
+  "effortLevel": "high",
+  "autoUpdatesChannel": "latest",
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark",
+  "statusLine": {
+    "type": "command",
+    "command": "node \"C:/Users/CameronPyne-Smith/.claude/statusline.js\""
+  }
+}

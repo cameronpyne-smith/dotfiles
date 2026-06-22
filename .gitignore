@@ -1,0 +1,8 @@
+# Never commit Claude Code credentials / machine-local overrides
+.credentials.json
+*.local.json
+settings.local.json
+
+# OS noise
+.DS_Store
+Thumbs.db
