@@ -20,13 +20,14 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# --- Require admin (symlinks need it on Windows) ---------------------------
-$isAdmin = ([Security.Principal.WindowsPrincipal] `
-    [Security.Principal.WindowsIdentity]::GetCurrent()
-).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-
-if (-not $isAdmin) {
-    Write-Error "This script must be run from an elevated PowerShell (Run as Administrator)."
+# --- Require admin / symlinks permission ------------------------------------
+$probe = Join-Path ([System.IO.Path]::GetTempPath()) ("symlink-probe-" + [System.IO.Path]::GetRandomFileName())
+try {
+    New-Item -ItemType SymbolicLink -Path $probe -Target $PSScriptRoot -ErrorAction Stop | Out-Null
+    Remove-Item -LiteralPath $probe -Force
+}
+catch {
+    Write-Error "Cannot create symlinks. Run from an elevated PowerShell (Run as Administrator) or enable Developer Mode (Settings > Privacy & security > For developers)."
     exit 1
 }
 
