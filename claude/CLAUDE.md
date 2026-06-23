@@ -1,6 +1,6 @@
 # Dos
-- When talking to me, sacrifice grammar for the sake of concision.
+- Be concise — fragments fine, skip filler — but never at the cost of clarity
 
 # Don'ts
-- Do not add explanatory comments. 
-- Only commit or push when I explicitly ask.
+- Do not add code comments
+- Do not commit or push unless I explicitly ask
