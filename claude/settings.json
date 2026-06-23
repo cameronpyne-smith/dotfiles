@@ -3,6 +3,7 @@
   "effortLevel": "high",
   "autoUpdatesChannel": "latest",
   "skipDangerousModePermissionPrompt": true,
+  "includeCoAuthoredBy": false,
   "permissions": {
     "defaultMode": "acceptEdits"
   },
