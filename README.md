@@ -27,12 +27,24 @@ The status line is wired up by `claude/settings.json`:
 
 ## Install
 
-Copy the files into `~/.claude/` (PowerShell):
+The install scripts symlink every file in `claude/` into `~/.claude/`, so the
+repo stays the single source of truth — edit a file here and the live config
+updates. Both scripts are idempotent and back up any existing real file to
+`*.bak` before linking (pass `--force`/`-Force` to skip the backup).
+
+**Windows** (run from an **elevated** PowerShell — symlinks need admin):
 
 ```powershell
-Copy-Item claude/settings.json   "$HOME/.claude/settings.json"
-Copy-Item claude/statusline.js   "$HOME/.claude/statusline.js"
+.\install.ps1
 ```
+
+**Linux / macOS**:
+
+```bash
+./install.sh
+```
+
+Add a new file to `claude/` and re-run the script to link it.
 
 ## Not tracked
 
