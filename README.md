@@ -19,11 +19,9 @@ The status line is wired up by `claude/settings.json`:
 ```json
 "statusLine": {
   "type": "command",
-  "command": "node \"C:/Users/CameronPyne-Smith/.claude/statusline.js\""
+  "command": "node ~/.claude/statusline.js"
 }
 ```
-
-> Note: that path is machine-specific. Update it if the home directory differs.
 
 ## Install
 
