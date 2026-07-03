@@ -18,6 +18,7 @@ function readStdin() {
 const dim = (s) => `\x1b[2m${s}\x1b[0m`;
 const cyan = (s) => `\x1b[36m${s}\x1b[0m`;
 const magenta = (s) => `\x1b[35m${s}\x1b[0m`;
+const orange = (s) => `\x1b[38;5;208m${s}\x1b[0m`;
 const color = (s, pct) => {
   const c = pct >= 90 ? 31 : pct >= 70 ? 33 : 32; // red / yellow / green
   return `\x1b[${c}m${s}\x1b[0m`;
@@ -72,7 +73,7 @@ function main() {
   let data = {};
   try {
     data = JSON.parse(readStdin() || "{}");
-  } catch {}
+  } catch { }
 
   const dir =
     data?.workspace?.current_dir || data?.cwd || process.cwd() || "";
@@ -90,6 +91,9 @@ function main() {
 
   const pct = Math.round(((tokens || 0) / limit) * 100);
   parts.push(color(`${pct}%`, pct));
+
+  const model = data?.model?.display_name;
+  if (model) parts.push(orange(model));
 
   process.stdout.write(parts.join(dim(" │ ")));
 }

@@ -1,15 +1,15 @@
 {
-  "model": "opus[1m]",
-  "effortLevel": "high",
-  "autoUpdatesChannel": "latest",
-  "skipDangerousModePermissionPrompt": true,
   "includeCoAuthoredBy": false,
   "permissions": {
     "defaultMode": "acceptEdits"
   },
-  "theme": "dark",
+  "model": "claude-fable-5[1m]",
   "statusLine": {
     "type": "command",
     "command": "node ~/.claude/statusline.js"
-  }
+  },
+  "effortLevel": "high",
+  "autoUpdatesChannel": "latest",
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark"
 }
