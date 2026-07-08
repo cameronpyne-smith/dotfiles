@@ -8,6 +8,7 @@ Personal machine configuration, kept under version control.
 | --- | --- | --- |
 | `claude/settings.json` | Claude Code user settings (model, theme, status line) | `~/.claude/settings.json` |
 | `claude/statusline.js` | Custom status line: folder · git branch · context-token % | `~/.claude/statusline.js` |
+| `shell/.inputrc` | Readline config: case-insensitive tab completion | `~/.inputrc` (WSL/Linux) |
 
 ## Claude status line
 
@@ -25,9 +26,11 @@ The status line is wired up by `claude/settings.json`:
 
 ## Install
 
-The install scripts symlink every file in `claude/` into `~/.claude/`, so the
+The install scripts symlink every file in `claude/` into `~/.claude/`, and
+`install.sh` additionally links every file in `shell/` into `~`, so the
 repo stays the single source of truth — edit a file here and the live config
-updates. Both scripts are idempotent and back up any existing real file to
+updates. For WSL, run `./install.sh` from inside WSL (the links point at
+`/mnt/c/code/dotfiles`). Both scripts are idempotent and back up any existing real file to
 `*.bak` before linking (pass `--force`/`-Force` to skip the backup).
 
 **Windows** (run from an **elevated** PowerShell — symlinks need admin):

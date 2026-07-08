@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Symlinks the tracked Claude Code config files into ~/.claude.
+# Symlinks the tracked config files into place.
 #
 # The repo is the source of truth. Every file in ./claude is symlinked into
-# $HOME/.claude so editing the repo copy updates the live config.
-# Re-run any time you add a new file to ./claude. Idempotent.
+# $HOME/.claude, and every file in ./shell is symlinked into $HOME, so
+# editing the repo copy updates the live config.
+# Re-run any time you add a new file. Idempotent.
 #
 # Usage:  ./install.sh [--force]
 #   --force   replace an existing real file without keeping a .bak copy
@@ -13,25 +14,16 @@ force=0
 [[ "${1:-}" == "--force" ]] && force=1
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source_dir="$script_dir/claude"
-target_dir="$HOME/.claude"
 
-if [[ ! -d "$source_dir" ]]; then
-    echo "Source directory not found: $source_dir" >&2
-    exit 1
-fi
-
-mkdir -p "$target_dir"
-
-for file in "$source_dir"/*; do
-    [[ -e "$file" ]] || continue          # nothing to link
-    name="$(basename "$file")"
-    target="$target_dir/$name"
+link() {
+    local file="$1" target="$2"
+    local name
+    name="$(basename "$target")"
 
     # Already the correct symlink? Skip.
     if [[ -L "$target" && "$(readlink "$target")" == "$file" ]]; then
         echo "OK    $name (already linked)"
-        continue
+        return
     fi
 
     # Something is in the way.
@@ -45,7 +37,27 @@ for file in "$source_dir"/*; do
 
     ln -s "$file" "$target"
     echo "LINK  $name -> $file"
-done
+}
+
+link_dir() {
+    local source_dir="$1" target_dir="$2"
+
+    if [[ ! -d "$source_dir" ]]; then
+        echo "Source directory not found: $source_dir" >&2
+        exit 1
+    fi
+
+    mkdir -p "$target_dir"
+
+    local file
+    for file in "$source_dir"/* "$source_dir"/.[!.]*; do
+        [[ -e "$file" ]] || continue          # nothing to link
+        link "$file" "$target_dir/$(basename "$file")"
+    done
+}
+
+link_dir "$script_dir/claude" "$HOME/.claude"
+link_dir "$script_dir/shell" "$HOME"
 
 echo
-echo "Done. ~/.claude now links to $source_dir"
+echo "Done."
