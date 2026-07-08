@@ -9,26 +9,15 @@ Personal machine configuration, kept under version control.
 | `claude/settings.json` | Claude Code user settings (model, theme, status line) | `~/.claude/settings.json` |
 | `claude/statusline.js` | Custom status line: folder · git branch · context-token % | `~/.claude/statusline.js` |
 | `shell/.inputrc` | Readline config: case-insensitive tab completion | `~/.inputrc` (WSL/Linux) |
-
-## Claude status line
-
-Shows the current folder, git branch, and session context usage as a
-percentage of 100k tokens (green < 70%, yellow ≥ 70%, red ≥ 90%).
-
-The status line is wired up by `claude/settings.json`:
-
-```json
-"statusLine": {
-  "type": "command",
-  "command": "node ~/.claude/statusline.js"
-}
-```
+| `shell/.bash_aliases` | Bash aliases | `~/.bash_aliases` (WSL/Linux) |
+| `powershell/profile.ps1` | PowerShell profile (aliases, functions) | `$PROFILE.CurrentUserAllHosts` (Windows) |
 
 ## Install
 
-The install scripts symlink every file in `claude/` into `~/.claude/`, and
-`install.sh` additionally links every file in `shell/` into `~`, so the
-repo stays the single source of truth — edit a file here and the live config
+The install scripts symlink every file in `claude/` into `~/.claude/`;
+`install.sh` additionally links every file in `shell/` into `~`, and
+`install.ps1` links `powershell/profile.ps1` to `$PROFILE.CurrentUserAllHosts`,
+so the repo stays the single source of truth — edit a file here and the live config
 updates. For WSL, run `./install.sh` from inside WSL (the links point at
 `/mnt/c/code/dotfiles`). Both scripts are idempotent and back up any existing real file to
 `*.bak` before linking (pass `--force`/`-Force` to skip the backup).
@@ -45,7 +34,7 @@ updates. For WSL, run `./install.sh` from inside WSL (the links point at
 ./install.sh
 ```
 
-Add a new file to `claude/` and re-run the script to link it.
+Add a new file to `claude/` or `shell/` and re-run the script to link it.
 
 ## Not tracked
 

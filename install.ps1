@@ -1,12 +1,14 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Symlinks the tracked Claude Code config files into ~/.claude.
+    Symlinks the tracked Claude Code config files into ~/.claude and the
+    PowerShell profile into place.
 
 .DESCRIPTION
     The repo is the source of truth. Every file in ./claude is symlinked into
-    %USERPROFILE%\.claude so editing the repo copy updates the live config.
-    Re-run any time you add a new file to ./claude. Idempotent.
+    %USERPROFILE%\.claude, and ./powershell/profile.ps1 is symlinked to
+    $PROFILE.CurrentUserAllHosts, so editing the repo copy updates the live
+    config. Re-run any time you add a new file to ./claude. Idempotent.
 
     Symlink creation on Windows requires elevation, so run this from an
     elevated PowerShell (Run as Administrator).
@@ -45,17 +47,14 @@ if (-not (Test-Path $targetDir)) {
     Write-Host "Created $targetDir"
 }
 
-# --- Link each file in ./claude --------------------------------------------
-$files = Get-ChildItem -File -Path $sourceDir
-foreach ($file in $files) {
-    $target = Join-Path $targetDir $file.Name
+function Link-File([System.IO.FileInfo]$file, [string]$target) {
     $existing = Get-Item -LiteralPath $target -ErrorAction SilentlyContinue
 
     if ($existing) {
         # Already the correct symlink? Skip.
         if ($existing.LinkType -eq 'SymbolicLink' -and $existing.Target -eq $file.FullName) {
             Write-Host "OK    $($file.Name) (already linked)"
-            continue
+            return
         }
 
         # A real file (or wrong link) is in the way.
@@ -70,6 +69,20 @@ foreach ($file in $files) {
     New-Item -ItemType SymbolicLink -Path $target -Target $file.FullName | Out-Null
     Write-Host "LINK  $($file.Name) -> $($file.FullName)"
 }
+
+# --- Link each file in ./claude --------------------------------------------
+foreach ($file in Get-ChildItem -File -Path $sourceDir) {
+    Link-File $file (Join-Path $targetDir $file.Name)
+}
+
+# --- Link the PowerShell profile --------------------------------------------
+$profileSource = Get-Item (Join-Path $PSScriptRoot 'powershell\profile.ps1')
+$profileTarget = $PROFILE.CurrentUserAllHosts
+$profileDir = Split-Path $profileTarget
+if (-not (Test-Path $profileDir)) {
+    New-Item -ItemType Directory -Path $profileDir | Out-Null
+}
+Link-File $profileSource $profileTarget
 
 Write-Host ""
 Write-Host "Done. ~/.claude now links to $sourceDir"
