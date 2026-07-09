@@ -11,13 +11,17 @@ Personal machine configuration, kept under version control.
 | `shell/.inputrc` | Readline config: case-insensitive tab completion | `~/.inputrc` (WSL/Linux) |
 | `shell/.bash_aliases` | Bash aliases | `~/.bash_aliases` (WSL/Linux) |
 | `powershell/profile.ps1` | PowerShell profile (aliases, functions) | `$PROFILE.CurrentUserAllHosts` (Windows) |
+| `wezterm/wezterm.lua` | WezTerm config (theme, font, transparency) | `~/.config/wezterm/wezterm.lua` (all platforms) |
 
 ## Install
 
 The install scripts symlink every file in `claude/` into `~/.claude/`;
 `install.sh` additionally links every file in `shell/` into `~`, and
-`install.ps1` links `powershell/profile.ps1` to `$PROFILE.CurrentUserAllHosts`,
-so the repo stays the single source of truth — edit a file here and the live config
+`install.ps1` links `powershell/profile.ps1` to `$PROFILE.CurrentUserAllHosts`.
+Both link `wezterm/wezterm.lua` into `~/.config/wezterm/` — WezTerm reads that
+path on Windows, WSL and Linux alike, ahead of `~/.wezterm.lua`
+([search order](https://wezterm.org/config/files.html)). The repo stays the
+single source of truth — edit a file here and the live config
 updates. For WSL, run `./install.sh` from inside WSL (the links point at
 `/mnt/c/code/dotfiles`). Both scripts are idempotent and back up any existing real file to
 `*.bak` before linking (pass `--force`/`-Force` to skip the backup).
