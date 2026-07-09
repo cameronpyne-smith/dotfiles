@@ -16,3 +16,7 @@ if command -v powershell.exe >/dev/null 2>&1; then
 fi
 
 alias cc='claude --dangerously-skip-permissions'
+
+if command -v starship >/dev/null 2>&1; then
+    eval "$(starship init bash)"
+fi

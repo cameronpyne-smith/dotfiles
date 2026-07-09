@@ -12,6 +12,7 @@ Personal machine configuration, kept under version control.
 | `shell/.bash_aliases` | Bash aliases | `~/.bash_aliases` (WSL/Linux) |
 | `powershell/profile.ps1` | PowerShell profile (aliases, functions) | `$PROFILE.CurrentUserAllHosts` (Windows) |
 | `wezterm/wezterm.lua` | WezTerm config (theme, font, transparency) | `~/.config/wezterm/wezterm.lua` (all platforms) |
+| `starship/starship.toml` | Starship prompt config | `~/.config/starship.toml` (all platforms) |
 
 ## Install
 

@@ -59,11 +59,10 @@ link_dir() {
 link_dir "$script_dir/claude" "$HOME/.claude"
 link_dir "$script_dir/shell" "$HOME"
 
-# WezTerm checks $XDG_CONFIG_HOME (default ~/.config)/wezterm/wezterm.lua on
-# every platform, ahead of ~/.wezterm.lua: https://wezterm.org/config/files.html
-wezterm_dir="${XDG_CONFIG_HOME:-$HOME/.config}/wezterm"
-mkdir -p "$wezterm_dir"
-link "$script_dir/wezterm/wezterm.lua" "$wezterm_dir/wezterm.lua"
+config_dir="${XDG_CONFIG_HOME:-$HOME/.config}"
+mkdir -p "$config_dir/wezterm"
+link "$script_dir/wezterm/wezterm.lua" "$config_dir/wezterm/wezterm.lua"
+link "$script_dir/starship/starship.toml" "$config_dir/starship.toml"
 
 echo
 echo "Done."

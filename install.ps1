@@ -85,14 +85,20 @@ if (-not (Test-Path $profileDir)) {
 Link-File $profileSource $profileTarget
 
 # --- Link the WezTerm config -------------------------------------------------
-# WezTerm checks ~/.config/wezterm/wezterm.lua on every platform (including
-# Windows), ahead of ~/.wezterm.lua: https://wezterm.org/config/files.html
 $weztermSource = Get-Item (Join-Path $PSScriptRoot 'wezterm\wezterm.lua')
 $weztermDir = Join-Path $env:USERPROFILE '.config\wezterm'
 if (-not (Test-Path $weztermDir)) {
     New-Item -ItemType Directory -Path $weztermDir | Out-Null
 }
 Link-File $weztermSource (Join-Path $weztermDir 'wezterm.lua')
+
+# --- Link the starship config ------------------------------------------------
+$starshipSource = Get-Item (Join-Path $PSScriptRoot 'starship\starship.toml')
+$configDir = Join-Path $env:USERPROFILE '.config'
+if (-not (Test-Path $configDir)) {
+    New-Item -ItemType Directory -Path $configDir | Out-Null
+}
+Link-File $starshipSource (Join-Path $configDir 'starship.toml')
 
 Write-Host ""
 Write-Host "Done. ~/.claude now links to $sourceDir"
