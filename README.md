@@ -10,6 +10,7 @@ Personal machine configuration, kept under version control.
 | `claude/statusline.js` | Custom status line: folder · git branch · context-token % | `~/.claude/statusline.js` |
 | `shell/.inputrc` | Readline config: case-insensitive tab completion | `~/.inputrc` (WSL/Linux) |
 | `shell/.bash_aliases` | Bash aliases | `~/.bash_aliases` (WSL/Linux) |
+| `shell/.dircolors` | ls colors: no background on other-writable dirs (`/mnt/c`) | `~/.dircolors` (WSL/Linux) |
 | `powershell/profile.ps1` | PowerShell profile (aliases, functions) | `$PROFILE.CurrentUserAllHosts` (Windows) |
 | `wezterm/wezterm.lua` | WezTerm config (theme, font, transparency) | `~/.config/wezterm/wezterm.lua` (all platforms) |
 | `starship/starship.toml` | Starship prompt config | `~/.config/starship.toml` (all platforms) |
