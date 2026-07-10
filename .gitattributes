@@ -1,8 +1,4 @@
-# Shell scripts must use LF so the shebang works on Linux/macOS.
 *.sh text eol=lf
-
-# Read by readline on Linux — CRLF would corrupt the settings.
 .inputrc text eol=lf
-
-# PowerShell scripts use CRLF on Windows.
+.bash_aliases text eol=lf
 *.ps1 text eol=crlf
