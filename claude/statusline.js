@@ -18,6 +18,7 @@ function readStdin() {
 const dim = (s) => `\x1b[2m${s}\x1b[0m`;
 const cyan = (s) => `\x1b[36m${s}\x1b[0m`;
 const magenta = (s) => `\x1b[35m${s}\x1b[0m`;
+const yellow = (s) => `\x1b[33m${s}\x1b[0m`;
 const orange = (s) => `\x1b[38;5;208m${s}\x1b[0m`;
 const color = (s, pct) => {
   const c = pct >= 90 ? 31 : pct >= 70 ? 33 : 32; // red / yellow / green
@@ -41,6 +42,21 @@ function gitBranch(dir) {
     return b && b !== "HEAD" ? b : null;
   } catch {
     return null;
+  }
+}
+
+function gitDirty(dir) {
+  try {
+    const out = execSync("git status --porcelain", {
+      cwd: dir,
+      stdio: ["ignore", "pipe", "ignore"],
+      timeout: 1000,
+    })
+      .toString()
+      .trim();
+    return out.length > 0;
+  } catch {
+    return false;
   }
 }
 
@@ -87,7 +103,10 @@ function main() {
   const parts = [];
   parts.push(cyan(folder));
 
-  if (branch) parts.push(magenta(branch));
+  if (branch) {
+    const dirty = gitDirty(dir);
+    parts.push(dirty ? yellow(`${branch} ●`) : magenta(branch));
+  }
 
   const pct = Math.round(((tokens || 0) / limit) * 100);
   parts.push(color(`${pct}%`, pct));
