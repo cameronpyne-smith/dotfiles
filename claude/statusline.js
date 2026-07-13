@@ -30,33 +30,21 @@ function fmt(n) {
   return String(n);
 }
 
-function gitBranch(dir) {
+function gitStatus(dir) {
   try {
-    const b = execSync("git rev-parse --abbrev-ref HEAD", {
+    const out = execSync("git status --porcelain --branch", {
       cwd: dir,
       stdio: ["ignore", "pipe", "ignore"],
       timeout: 1000,
-    })
-      .toString()
-      .trim();
-    return b && b !== "HEAD" ? b : null;
+    }).toString();
+    const lines = out.split("\n");
+    const header = lines[0] || "";
+    const dirty = lines.slice(1).some((l) => l.trim().length > 0);
+    const m = header.match(/^## (?:No commits yet on )?([^.\s]+)/);
+    const branch = m && m[1] !== "HEAD" ? m[1] : null;
+    return { branch, dirty };
   } catch {
-    return null;
-  }
-}
-
-function gitDirty(dir) {
-  try {
-    const out = execSync("git status --porcelain", {
-      cwd: dir,
-      stdio: ["ignore", "pipe", "ignore"],
-      timeout: 1000,
-    })
-      .toString()
-      .trim();
-    return out.length > 0;
-  } catch {
-    return false;
+    return { branch: null, dirty: false };
   }
 }
 
@@ -98,13 +86,12 @@ function main() {
   const limit = 100_000;
 
   const tokens = contextTokens(data?.transcript_path);
-  const branch = gitBranch(dir);
+  const { branch, dirty } = gitStatus(dir);
 
   const parts = [];
   parts.push(cyan(folder));
 
   if (branch) {
-    const dirty = gitDirty(dir);
     parts.push(dirty ? yellow(`${branch} ●`) : magenta(branch));
   }
 
