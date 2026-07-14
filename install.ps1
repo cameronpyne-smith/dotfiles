@@ -92,6 +92,29 @@ if (-not (Test-Path $weztermDir)) {
 }
 Link-File $weztermSource (Join-Path $weztermDir 'wezterm.lua')
 
+# --- Link the Windows Terminal settings --------------------------------------
+# Covers packaged installs (Store/winget, incl. Preview) and unpackaged ones
+# (Scoop/Chocolatey), which keep settings in different locations.
+$wtSource = Get-Item (Join-Path $PSScriptRoot 'windows-terminal\settings.json')
+# The unpackaged dir also exists on packaged installs (it holds profile
+# fragments), so it only counts as a target if it already has a settings.json.
+$wtUnpackaged = Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal'
+$wtDirs = @(
+    Get-ChildItem -Directory -Path (Join-Path $env:LOCALAPPDATA 'Packages') -Filter 'Microsoft.WindowsTerminal*' -ErrorAction SilentlyContinue |
+        ForEach-Object { Join-Path $_.FullName 'LocalState' } |
+        Where-Object { Test-Path $_ }
+    if (Test-Path (Join-Path $wtUnpackaged 'settings.json')) { $wtUnpackaged }
+)
+
+if ($wtDirs) {
+    foreach ($dir in $wtDirs) {
+        Link-File $wtSource (Join-Path $dir 'settings.json')
+    }
+}
+else {
+    Write-Host "SKIP  settings.json (Windows Terminal not installed)"
+}
+
 # --- Link the starship config ------------------------------------------------
 $starshipSource = Get-Item (Join-Path $PSScriptRoot 'starship\starship.toml')
 $configDir = Join-Path $env:USERPROFILE '.config'

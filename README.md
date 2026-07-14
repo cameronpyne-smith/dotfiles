@@ -13,6 +13,7 @@ Personal machine configuration, kept under version control.
 | `shell/.dircolors` | ls colors: no background on other-writable dirs (`/mnt/c`) | `~/.dircolors` (WSL/Linux) |
 | `powershell/profile.ps1` | PowerShell profile (aliases, functions) | `$PROFILE.CurrentUserAllHosts` (Windows) |
 | `wezterm/wezterm.lua` | WezTerm config (theme, font, transparency) | `~/.config/wezterm/wezterm.lua` (all platforms) |
+| `windows-terminal/settings.json` | Windows Terminal settings (theme, font, transparency) | Windows Terminal's `settings.json` — location auto-detected (Windows) |
 | `starship/starship.toml` | Starship prompt config | `~/.config/starship.toml` (all platforms) |
 
 ## Install
