@@ -10,8 +10,11 @@
     $PROFILE.CurrentUserAllHosts, so editing the repo copy updates the live
     config. Re-run any time you add a new file to ./claude. Idempotent.
 
-    Symlink creation on Windows requires elevation, so run this from an
-    elevated PowerShell (Run as Administrator).
+    Symlink creation on Windows requires either Developer Mode or elevation.
+    Enable Developer Mode (Settings > Privacy & security > For developers) and
+    run this from a normal PowerShell as your own user. Avoid running elevated
+    from a non-admin account: the shell runs as the admin user, so everything
+    installs into that account's profile instead of yours.
 #>
 
 [CmdletBinding()]
@@ -29,7 +32,7 @@ try {
     Remove-Item -LiteralPath $probe -Force
 }
 catch {
-    Write-Error "Cannot create symlinks. Run from an elevated PowerShell (Run as Administrator) or enable Developer Mode (Settings > Privacy & security > For developers)."
+    Write-Error "Cannot create symlinks. Enable Developer Mode (Settings > Privacy & security > For developers), or run from an elevated PowerShell if this account is an administrator."
     exit 1
 }
 
