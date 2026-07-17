@@ -6,6 +6,11 @@ if command -v dotnet.exe >/dev/null 2>&1 && ! command -v dotnet >/dev/null 2>&1;
     alias dotnet='dotnet.exe'
 fi
 
+if command -v go.exe >/dev/null 2>&1 && ! command -v go >/dev/null 2>&1; then
+    alias go='go.exe'
+fi
+
+
 # nvim config lives in %LOCALAPPDATA%\nvim on the Windows side
 if command -v nvim.exe >/dev/null 2>&1 && ! command -v nvim >/dev/null 2>&1; then
     alias nvim='nvim.exe'
