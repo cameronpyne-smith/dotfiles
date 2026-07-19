@@ -1,4 +1,6 @@
 # Secrets
+.claude.json
+.claude.json.backup
 .credentials.json
 *.local.json
 settings.local.json
