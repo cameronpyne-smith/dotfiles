@@ -9,6 +9,6 @@
 ## mnemo — personal knowledge vault
 The `vault_*` MCP tools reach my second brain: durable knowledge.
 
-- Read lazily: when a task touches my projects or personal context, `vault_search` before assuming or asking (`vault_index` to browse). `vault_get` only the slugs that look relevant; follow `[[wikilinks]]` with further gets.
-- `vault_capture` anything durable and non-obvious: raw, self-contained, absolute dates. Filing is async and not your job — never pick a location or format.
+- Read lazily: `vault_search` to search through mnemo knowledge vault. `vault_index` to list topic hubs. `vault_get` only the slugs that look relevant; follow `[[wikilinks]]` with further gets.
+- When you learn something durable and non-obvious `vault_capture` it. Dump the raw content with enough context to be self-contained. Filing is async and not your job — never pick a location or format.
 - Correct or extend a note you've read with `vault_edit` (prefer `append`). Never invent slugs.
