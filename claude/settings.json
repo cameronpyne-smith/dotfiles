@@ -8,7 +8,7 @@
     "type": "command",
     "command": "node ~/.claude/statusline.js"
   },
-  "effortLevel": "high",
+  "effortLevel": "xhigh",
   "autoUpdatesChannel": "latest",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-ansi"
