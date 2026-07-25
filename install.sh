@@ -64,5 +64,11 @@ mkdir -p "$config_dir/wezterm"
 link "$script_dir/wezterm/wezterm.lua" "$config_dir/wezterm/wezterm.lua"
 link "$script_dir/starship/starship.toml" "$config_dir/starship.toml"
 
+win_home="$(wslpath "$(cmd.exe /C 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r')" 2>/dev/null || true)"
+if [[ -n "$win_home" && -f "$win_home/.kube/config" ]]; then
+    mkdir -p "$HOME/.kube"
+    link "$win_home/.kube/config" "$HOME/.kube/config"
+fi
+
 echo
 echo "Done."
