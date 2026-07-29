@@ -6,6 +6,10 @@
 - Do not commit or push unless I explicitly ask
 - Do not reformat surrounding code or run formatters or auto-fixers (`prettier --write`, `eslint --fix`, `gofmt -w`, etc.) unless explicitly asked
 
+## Prompting feedback
+- If a misunderstanding or rework in this session was caused by an ambiguous or under-specified prompt, briefly note after finishing the task how it could have been phrased better.
+- Keep it short, only after the task is done (not mid-task), and only when there was an actual misunderstanding/rework — not for every prompt.
+
 ## mnemo — personal knowledge vault
 The `vault_*` MCP tools reach my second brain: durable knowledge.
 
