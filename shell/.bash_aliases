@@ -20,7 +20,33 @@ if command -v powershell.exe >/dev/null 2>&1; then
     bastion() { powershell.exe -Command "bastion $*"; }
 fi
 
-alias cc='claude --dangerously-skip-permissions'
+_dotfiles="${DOTFILES:-$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")}"
+if [ -d "$_dotfiles/commands" ]; then
+    for _f in "$_dotfiles"/commands/*.ts "$_dotfiles"/commands/*.sh; do
+        [ -e "$_f" ] || continue
+        case "$_f" in *.test.*) continue ;; esac
+        _n="$(basename "$_f")"
+        _n="${_n%.*}"
+        case "$_f" in
+            *.ts)
+                _p="$_f"
+                command -v wslpath >/dev/null 2>&1 && _p="$(wslpath -w "$_f")"
+                eval "${_n}() { node.exe \"$_p\" \"\$@\"; }"
+                ;;
+            *.sh)
+                eval "${_n}() { bash \"$_f\" \"\$@\"; }"
+                ;;
+        esac
+    done
+
+    if [ -f "$_dotfiles/commands/aliases.conf" ]; then
+        while IFS='=' read -r _n _c; do
+            case "$_n" in ''|\#*) continue ;; esac
+            eval "${_n}() { $_c \"\$@\"; }"
+        done < "$_dotfiles/commands/aliases.conf"
+    fi
+fi
+unset _dotfiles _f _n _p _c
 
 case ":$PATH:" in
     *":$HOME/.local/bin:"*) ;;
