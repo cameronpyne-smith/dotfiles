@@ -10,14 +10,22 @@ if command -v go.exe >/dev/null 2>&1 && ! command -v go >/dev/null 2>&1; then
     alias go='go.exe'
 fi
 
+# repos under /mnt are Windows-owned: their worktree pointers, line endings and
+# index state belong to Windows git, so dispatch on where the repo lives
+if command -v git.exe >/dev/null 2>&1; then
+    git() {
+        if [[ "$PWD" == /mnt/* ]]; then
+            git.exe "$@"
+        else
+            command git "$@"
+        fi
+    }
+fi
+
 
 # nvim config lives in %LOCALAPPDATA%\nvim on the Windows side
 if command -v nvim.exe >/dev/null 2>&1 && ! command -v nvim >/dev/null 2>&1; then
     alias nvim='nvim.exe'
-fi
-
-if command -v powershell.exe >/dev/null 2>&1; then
-    bastion() { powershell.exe -Command "bastion $*"; }
 fi
 
 _dotfiles="${DOTFILES:-$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")}"

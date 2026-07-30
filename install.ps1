@@ -6,9 +6,11 @@
 
 .DESCRIPTION
     The repo is the source of truth. Every file in ./claude is symlinked into
-    %USERPROFILE%\.claude, and ./powershell/profile.ps1 is symlinked to
-    $PROFILE.CurrentUserAllHosts, so editing the repo copy updates the live
-    config. Re-run any time you add a new file to ./claude. Idempotent.
+    %USERPROFILE%\.claude, and ./powershell/profile.ps1 is symlinked into both
+    PowerShell 7 (Documents\PowerShell) and Windows PowerShell 5.1
+    (Documents\WindowsPowerShell) profile locations, so editing the repo copy
+    updates the live config. Re-run any time you add a new file to ./claude.
+    Idempotent.
 
     Symlink creation on Windows requires either Developer Mode or elevation.
     Enable Developer Mode (Settings > Privacy & security > For developers) and
@@ -80,12 +82,17 @@ foreach ($file in Get-ChildItem -File -Path $sourceDir) {
 
 # --- Link the PowerShell profile --------------------------------------------
 $profileSource = Get-Item (Join-Path $PSScriptRoot 'powershell\profile.ps1')
-$profileTarget = $PROFILE.CurrentUserAllHosts
-$profileDir = Split-Path $profileTarget
-if (-not (Test-Path $profileDir)) {
-    New-Item -ItemType Directory -Path $profileDir | Out-Null
+$documents = [Environment]::GetFolderPath('MyDocuments')
+foreach ($profileTarget in @(
+        (Join-Path $documents 'PowerShell\profile.ps1'),
+        (Join-Path $documents 'WindowsPowerShell\profile.ps1')
+    )) {
+    $profileDir = Split-Path $profileTarget
+    if (-not (Test-Path $profileDir)) {
+        New-Item -ItemType Directory -Path $profileDir | Out-Null
+    }
+    Link-File $profileSource $profileTarget
 }
-Link-File $profileSource $profileTarget
 
 # --- Link the WezTerm config -------------------------------------------------
 $weztermSource = Get-Item (Join-Path $PSScriptRoot 'wezterm\wezterm.lua')

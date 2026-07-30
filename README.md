@@ -46,6 +46,11 @@ command needs no re-install, just a new shell.
 | Command | Signature | What it does |
 | --- | --- | --- |
 | `hotfix` | `hotfix <commit>... [--base <tag>] [--dry-run] [--push-branch] [--yes]` | Cherry-picks merged commits onto the latest release tag and tags a hotfix release. Asks before pushing; `--dry-run` shows the plan without creating anything. |
+| `bastion` | `bastion` | SSHs onto the dev jumpbox via Azure Bastion. Exports `MSYS_NO_PATHCONV=1` so Git Bash doesn't mangle the `/subscriptions/...` resource id. |
+| `run-everything` | `run-everything` | Opens Windows Terminal tabs running `run-eventstore-grpc`, `run-elastic` and `run-kibana`. |
+| `run-eventstore-here` | `run-eventstore-here` | Runs KurrentDB in Docker with the current directory as the data dir (`pwd -W` in Git Bash so Docker gets a Windows path). |
+| `run-elastic` | `run-elastic` | Starts the local Elasticsearch 7.17.3 install. |
+| `run-kibana` | `run-kibana` | Starts the local Kibana 7.17.3 install. |
 
 One-line wrappers are listed in `commands/aliases.conf` itself.
 
