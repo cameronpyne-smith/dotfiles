@@ -3,8 +3,17 @@
 // Receives a JSON blob on stdin from Claude Code.
 
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
-const { execSync } = require("child_process");
+const https = require("https");
+const { execSync, spawn } = require("child_process");
+
+const USAGE_CACHE_DIR = path.join(os.homedir(), ".cache", "claude-statusline");
+const USAGE_CACHE = path.join(USAGE_CACHE_DIR, "usage.json");
+const USAGE_LOCK = path.join(USAGE_CACHE_DIR, "usage.lock");
+const USAGE_TTL = 180;
+const USAGE_LOCK_TTL = 30;
+const USAGE_RATE_LIMIT_BACKOFF = 300;
 
 function readStdin() {
   try {
@@ -36,14 +45,84 @@ function usagePart(label, rl) {
   return color(`${label} ${bar(pct)} ${pct}%`, pct);
 }
 
-function weeklyPace(rl) {
+function readJson(file) {
+  try {
+    return JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function fableUsage() {
+  const cache = readJson(USAGE_CACHE);
+  const now = Date.now() / 1000;
+  if (!cache || now - (cache.fetchedAt || 0) >= USAGE_TTL) {
+    const lock = readJson(USAGE_LOCK);
+    if (!lock || lock.blockedUntil <= now) {
+      try {
+        fs.mkdirSync(USAGE_CACHE_DIR, { recursive: true });
+        fs.writeFileSync(USAGE_LOCK, JSON.stringify({ blockedUntil: now + USAGE_LOCK_TTL }));
+        spawn(process.execPath, [__filename, "--refresh-usage"], { detached: true, stdio: "ignore" }).unref();
+      } catch { }
+    }
+  }
+  if (!cache?.fable) return null;
+  return { used_percentage: cache.fable.percent, resets_at: Date.parse(cache.fable.resetsAt) / 1000 };
+}
+
+function refreshUsage() {
+  const creds = readJson(path.join(os.homedir(), ".claude", ".credentials.json"));
+  const token = creds?.claudeAiOauth?.accessToken;
+  if (!token) return;
+  const req = https.request(
+    {
+      hostname: "api.anthropic.com",
+      path: "/api/oauth/usage",
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}`, "anthropic-beta": "oauth-2025-04-20" },
+      timeout: 5000,
+    },
+    (res) => {
+      let body = "";
+      res.setEncoding("utf8");
+      res.on("data", (c) => (body += c));
+      res.on("end", () => {
+        const now = Date.now() / 1000;
+        try {
+          fs.mkdirSync(USAGE_CACHE_DIR, { recursive: true });
+          if (res.statusCode === 429) {
+            const retry = parseInt(res.headers["retry-after"], 10);
+            fs.writeFileSync(USAGE_LOCK, JSON.stringify({ blockedUntil: now + (retry > 0 ? retry : USAGE_RATE_LIMIT_BACKOFF) }));
+            return;
+          }
+          if (res.statusCode !== 200) return;
+          const data = JSON.parse(body);
+          const fable = (data.limits || []).find(
+            (l) =>
+              l?.kind === "weekly_scoped" &&
+              (l?.scope?.model?.display_name || "").toLowerCase().includes("fable")
+          );
+          const cache = { fetchedAt: now };
+          if (fable && (fable.percent || fable.resets_at)) {
+            cache.fable = { percent: fable.percent ?? 0, resetsAt: fable.resets_at };
+          }
+          fs.writeFileSync(USAGE_CACHE, JSON.stringify(cache));
+          fs.rmSync(USAGE_LOCK, { force: true });
+        } catch { }
+      });
+    }
+  );
+  req.on("error", () => { });
+  req.on("timeout", () => req.destroy());
+  req.end();
+}
+
+function pace(rl, windowSec) {
   if (!rl || rl.used_percentage == null || !rl.resets_at) return null;
-  const windowSec = 7 * 24 * 3600;
   const start = rl.resets_at - windowSec;
   const frac = Math.min(1, Math.max(0, (Date.now() / 1000 - start) / windowSec));
   const pct = Math.round(rl.used_percentage);
-  const target = frac * 100;
-  return { pct, target, delta: pct - target, frac };
+  return { pct, delta: pct - frac * 100, frac };
 }
 
 const paceColor = (s, delta) => {
@@ -51,16 +130,15 @@ const paceColor = (s, delta) => {
   return `\x1b[${c}m${s}\x1b[0m`;
 };
 
-function weeklyPart(rl) {
-  const p = weeklyPace(rl);
-  if (!p) return usagePart("7d", rl);
-  const w = 7;
+function pacePart(label, rl, windowSec, w) {
+  const p = pace(rl, windowSec);
+  if (!p) return usagePart(label, rl);
   const filled = Math.min(w, Math.max(0, Math.round((p.pct / 100) * w)));
   const chars = [];
   for (let i = 0; i < w; i++) chars.push(i < filled ? "█" : "░");
   chars[Math.min(w - 1, Math.floor(p.frac * w))] = "┊";
   const deltaTxt = p.delta >= 0 ? `▲${Math.round(p.delta)}%` : `▼${Math.round(-p.delta)}%`;
-  return paceColor(`7d ${chars.join("")} ${p.pct}% ${deltaTxt}`, p.delta);
+  return paceColor(`${label} ${chars.join("")} ${p.pct}% ${deltaTxt}`, p.delta);
 }
 
 function fmt(n) {
@@ -139,12 +217,16 @@ function main() {
   const model = data?.model?.display_name;
   if (model) parts.push(orange(model));
 
-  const session = usagePart("5h", data?.rate_limits?.five_hour);
-  const week = weeklyPart(data?.rate_limits?.seven_day);
-  if (session) parts.push(session);
-  if (week) parts.push(week);
+  const usage = [
+    pacePart("5h", data?.rate_limits?.five_hour, 5 * 3600, 7),
+    pacePart("7d", data?.rate_limits?.seven_day, 7 * 24 * 3600, 7),
+    pacePart("F7d", fableUsage(), 7 * 24 * 3600, 7),
+  ].filter(Boolean);
 
-  process.stdout.write(parts.join(dim(" │ ")));
+  const lines = [parts.join(dim(" │ "))];
+  if (usage.length) lines.push(usage.join(dim(" │ ")));
+  process.stdout.write(lines.join("\n"));
 }
 
-main();
+if (process.argv[2] === "--refresh-usage") refreshUsage();
+else main();
