@@ -174,6 +174,7 @@ function refreshPr(dir, branch) {
       cwd: dir,
       stdio: ["ignore", "pipe", "ignore"],
       timeout: 15000,
+      windowsHide: true,
     }).toString();
     const parsed = JSON.parse(out);
     const counts = { failing: 0, pending: 0, success: 0 };
@@ -252,6 +253,7 @@ function gitStatus(dir) {
       cwd: dir,
       stdio: ["ignore", "pipe", "ignore"],
       timeout: 1000,
+      windowsHide: true,
     }).toString();
     const lines = out.split("\n");
     const header = lines[0] || "";
@@ -269,6 +271,7 @@ function gitStatus(dir) {
         cwd: dir,
         stdio: ["ignore", "pipe", "ignore"],
         timeout: 1000,
+        windowsHide: true,
       }).toString();
       result.ins = parseInt(stat.match(/(\d+) insertion/)?.[1] || 0, 10);
       result.del = parseInt(stat.match(/(\d+) deletion/)?.[1] || 0, 10);
