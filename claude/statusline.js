@@ -28,6 +28,8 @@ const dim = (s) => `\x1b[2m${s}\x1b[0m`;
 const cyan = (s) => `\x1b[36m${s}\x1b[0m`;
 const magenta = (s) => `\x1b[35m${s}\x1b[0m`;
 const yellow = (s) => `\x1b[33m${s}\x1b[0m`;
+const green = (s) => `\x1b[32m${s}\x1b[0m`;
+const red = (s) => `\x1b[31m${s}\x1b[0m`;
 const orange = (s) => `\x1b[38;5;208m${s}\x1b[0m`;
 const color = (s, pct) => {
   const c = pct >= 90 ? 31 : pct >= 70 ? 33 : 32; // red / yellow / green
@@ -39,10 +41,10 @@ function bar(pct, width = 5) {
   return "█".repeat(filled) + "░".repeat(width - filled);
 }
 
-function usagePart(label, rl) {
+function usagePart(rl) {
   if (!rl || rl.used_percentage == null) return null;
   const pct = Math.round(rl.used_percentage);
-  return color(`${label} ${bar(pct)} ${pct}%`, pct);
+  return color(`${bar(pct)} ${pct}%`, pct);
 }
 
 function readJson(file) {
@@ -130,15 +132,31 @@ const paceColor = (s, delta) => {
   return `\x1b[${c}m${s}\x1b[0m`;
 };
 
-function pacePart(label, rl, windowSec, w) {
+function fmtReset(resetsAt, windowSec) {
+  const remaining = resetsAt - Date.now() / 1000;
+  if (remaining <= 0) return null;
+  if (windowSec <= 24 * 3600) {
+    const mins = Math.round(remaining / 60);
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return h > 0 ? `${h}h${String(m).padStart(2, "0")}m` : `${m}m`;
+  }
+  const d = new Date(Math.round(resetsAt / 60) * 60 * 1000);
+  const day = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()];
+  return `${day} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+function pacePart(rl, windowSec, w, showReset = true) {
   const p = pace(rl, windowSec);
-  if (!p) return usagePart(label, rl);
+  if (!p) return usagePart(rl);
   const filled = Math.min(w, Math.max(0, Math.round((p.pct / 100) * w)));
   const chars = [];
   for (let i = 0; i < w; i++) chars.push(i < filled ? "█" : "░");
   chars[Math.min(w - 1, Math.floor(p.frac * w))] = "┊";
   const deltaTxt = p.delta >= 0 ? `▲${Math.round(p.delta)}%` : `▼${Math.round(-p.delta)}%`;
-  return paceColor(`${label} ${chars.join("")} ${p.pct}% ${deltaTxt}`, p.delta);
+  const seg = paceColor(`${chars.join("")} ${p.pct}% ${deltaTxt}`, p.delta);
+  const reset = showReset ? fmtReset(rl.resets_at, windowSec) : null;
+  return reset ? `${dim(`⟳${reset}`)} ${seg}` : seg;
 }
 
 function fmt(n) {
@@ -147,21 +165,35 @@ function fmt(n) {
 }
 
 function gitStatus(dir) {
+  const result = { branch: null, dirty: false, ahead: 0, behind: 0, ins: 0, del: 0 };
   try {
-    const out = execSync("git status --porcelain --branch", {
+    const out = execSync("git --no-optional-locks status --porcelain --branch", {
       cwd: dir,
       stdio: ["ignore", "pipe", "ignore"],
       timeout: 1000,
     }).toString();
     const lines = out.split("\n");
     const header = lines[0] || "";
-    const dirty = lines.slice(1).some((l) => l.trim().length > 0);
+    result.dirty = lines.slice(1).some((l) => l.trim().length > 0);
     const m = header.match(/^## (?:No commits yet on )?([^.\s]+)/);
-    const branch = m && m[1] !== "HEAD" ? m[1] : null;
-    return { branch, dirty };
+    result.branch = m && m[1] !== "HEAD" ? m[1] : null;
+    result.ahead = parseInt(header.match(/\[.*ahead (\d+)/)?.[1] || 0, 10);
+    result.behind = parseInt(header.match(/\[.*behind (\d+)/)?.[1] || 0, 10);
   } catch {
-    return { branch: null, dirty: false };
+    return result;
   }
+  if (result.dirty) {
+    try {
+      const stat = execSync("git --no-optional-locks diff --shortstat HEAD", {
+        cwd: dir,
+        stdio: ["ignore", "pipe", "ignore"],
+        timeout: 1000,
+      }).toString();
+      result.ins = parseInt(stat.match(/(\d+) insertion/)?.[1] || 0, 10);
+      result.del = parseInt(stat.match(/(\d+) deletion/)?.[1] || 0, 10);
+    } catch { }
+  }
+  return result;
 }
 
 function contextTokens(transcriptPath) {
@@ -202,13 +234,19 @@ function main() {
   const limit = 100_000;
 
   const tokens = contextTokens(data?.transcript_path);
-  const { branch, dirty } = gitStatus(dir);
+  const { branch, dirty, ahead, behind, ins, del } = gitStatus(dir);
 
   const parts = [];
   parts.push(cyan(folder));
 
   if (branch) {
-    parts.push(dirty ? yellow(`${branch} ●`) : magenta(branch));
+    const seg = [dirty ? yellow(`${branch} ●`) : magenta(branch)];
+    if (ahead || behind) {
+      seg.push(dim(`${ahead ? `↑${ahead}` : ""}${behind ? `↓${behind}` : ""}`));
+    }
+    if (ins) seg.push(green(`+${ins}`));
+    if (del) seg.push(red(`-${del}`));
+    parts.push(seg.join(" "));
   }
 
   const pct = Math.round(((tokens || 0) / limit) * 100);
@@ -218,9 +256,9 @@ function main() {
   if (model) parts.push(orange(model));
 
   const usage = [
-    pacePart("5h", data?.rate_limits?.five_hour, 5 * 3600, 7),
-    pacePart("7d", data?.rate_limits?.seven_day, 7 * 24 * 3600, 7),
-    pacePart("F7d", fableUsage(), 7 * 24 * 3600, 7),
+    pacePart(data?.rate_limits?.five_hour, 5 * 3600, 7),
+    pacePart(data?.rate_limits?.seven_day, 7 * 24 * 3600, 7),
+    pacePart(fableUsage(), 7 * 24 * 3600, 7, false),
   ].filter(Boolean);
 
   const lines = [parts.join(dim(" │ "))];
