@@ -25,6 +25,17 @@ const color = (s, pct) => {
   return `\x1b[${c}m${s}\x1b[0m`;
 };
 
+function bar(pct, width = 5) {
+  const filled = Math.min(width, Math.max(0, Math.round((pct / 100) * width)));
+  return "█".repeat(filled) + "░".repeat(width - filled);
+}
+
+function usagePart(label, rl) {
+  if (!rl || rl.used_percentage == null) return null;
+  const pct = Math.round(rl.used_percentage);
+  return color(`${label} ${bar(pct)} ${pct}%`, pct);
+}
+
 function fmt(n) {
   if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + "k";
   return String(n);
@@ -100,6 +111,11 @@ function main() {
 
   const model = data?.model?.display_name;
   if (model) parts.push(orange(model));
+
+  const session = usagePart("5h", data?.rate_limits?.five_hour);
+  const week = usagePart("7d", data?.rate_limits?.seven_day);
+  if (session) parts.push(session);
+  if (week) parts.push(week);
 
   process.stdout.write(parts.join(dim(" │ ")));
 }
