@@ -68,7 +68,7 @@ function fableUsage() {
       try {
         fs.mkdirSync(CACHE_DIR, { recursive: true });
         fs.writeFileSync(USAGE_LOCK, JSON.stringify({ blockedUntil: now + LOCK_TTL }));
-        spawn(process.execPath, [__filename, "--refresh-usage"], { detached: true, stdio: "ignore" }).unref();
+        spawn(process.execPath, [__filename, "--refresh-usage"], { detached: true, stdio: "ignore", windowsHide: true }).unref();
       } catch { }
     }
   }
@@ -140,7 +140,7 @@ function prStatus(dir, branch) {
       try {
         fs.mkdirSync(CACHE_DIR, { recursive: true });
         fs.writeFileSync(`${base}.lock`, JSON.stringify({ blockedUntil: now + LOCK_TTL }));
-        spawn(process.execPath, [__filename, "--refresh-pr", dir, branch], { detached: true, stdio: "ignore" }).unref();
+        spawn(process.execPath, [__filename, "--refresh-pr", dir, branch], { detached: true, stdio: "ignore", windowsHide: true }).unref();
       } catch { }
     }
   }
