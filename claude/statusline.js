@@ -6,14 +6,18 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const https = require("https");
+const { createHash } = require("crypto");
 const { execSync, spawn } = require("child_process");
 
-const USAGE_CACHE_DIR = path.join(os.homedir(), ".cache", "claude-statusline");
-const USAGE_CACHE = path.join(USAGE_CACHE_DIR, "usage.json");
-const USAGE_LOCK = path.join(USAGE_CACHE_DIR, "usage.lock");
+const CACHE_DIR = path.join(os.homedir(), ".cache", "claude-statusline");
+const USAGE_CACHE = path.join(CACHE_DIR, "usage.json");
+const USAGE_LOCK = path.join(CACHE_DIR, "usage.lock");
 const USAGE_TTL = 180;
-const USAGE_LOCK_TTL = 30;
+const LOCK_TTL = 30;
 const USAGE_RATE_LIMIT_BACKOFF = 300;
+const PR_TTL = 60;
+const PR_NULL_TTL = 300;
+const PR_CACHE_MAX_AGE = 7 * 24 * 3600;
 
 function readStdin() {
   try {
@@ -62,8 +66,8 @@ function fableUsage() {
     const lock = readJson(USAGE_LOCK);
     if (!lock || lock.blockedUntil <= now) {
       try {
-        fs.mkdirSync(USAGE_CACHE_DIR, { recursive: true });
-        fs.writeFileSync(USAGE_LOCK, JSON.stringify({ blockedUntil: now + USAGE_LOCK_TTL }));
+        fs.mkdirSync(CACHE_DIR, { recursive: true });
+        fs.writeFileSync(USAGE_LOCK, JSON.stringify({ blockedUntil: now + LOCK_TTL }));
         spawn(process.execPath, [__filename, "--refresh-usage"], { detached: true, stdio: "ignore" }).unref();
       } catch { }
     }
@@ -91,7 +95,7 @@ function refreshUsage() {
       res.on("end", () => {
         const now = Date.now() / 1000;
         try {
-          fs.mkdirSync(USAGE_CACHE_DIR, { recursive: true });
+          fs.mkdirSync(CACHE_DIR, { recursive: true });
           if (res.statusCode === 429) {
             const retry = parseInt(res.headers["retry-after"], 10);
             fs.writeFileSync(USAGE_LOCK, JSON.stringify({ blockedUntil: now + (retry > 0 ? retry : USAGE_RATE_LIMIT_BACKOFF) }));
@@ -117,6 +121,83 @@ function refreshUsage() {
   req.on("error", () => { });
   req.on("timeout", () => req.destroy());
   req.end();
+}
+
+function prCachePath(dir, branch) {
+  const key = createHash("sha256").update(`${dir}|${branch}`).digest("hex").slice(0, 12);
+  return path.join(CACHE_DIR, `pr-${key}`);
+}
+
+function prStatus(dir, branch) {
+  if (!branch) return null;
+  const base = prCachePath(dir, branch);
+  const cache = readJson(`${base}.json`);
+  const now = Date.now() / 1000;
+  const ttl = cache?.pr ? PR_TTL : PR_NULL_TTL;
+  if (!cache || now - (cache.fetchedAt || 0) >= ttl) {
+    const lock = readJson(`${base}.lock`);
+    if (!lock || lock.blockedUntil <= now) {
+      try {
+        fs.mkdirSync(CACHE_DIR, { recursive: true });
+        fs.writeFileSync(`${base}.lock`, JSON.stringify({ blockedUntil: now + LOCK_TTL }));
+        spawn(process.execPath, [__filename, "--refresh-pr", dir, branch], { detached: true, stdio: "ignore" }).unref();
+      } catch { }
+    }
+  }
+  return cache?.pr || null;
+}
+
+function classifyCheck(entry) {
+  const s = String(entry?.conclusion || entry?.state || entry?.status || "").toUpperCase();
+  if (s === "SUCCESS") return "success";
+  if (s === "NEUTRAL" || s === "SKIPPED") return null;
+  if (["PENDING", "EXPECTED", "IN_PROGRESS", "QUEUED", ""].includes(s)) return "pending";
+  return "failing";
+}
+
+function prunePrCaches() {
+  try {
+    const cutoff = Date.now() - PR_CACHE_MAX_AGE * 1000;
+    for (const name of fs.readdirSync(CACHE_DIR)) {
+      if (!name.startsWith("pr-")) continue;
+      const file = path.join(CACHE_DIR, name);
+      if (fs.statSync(file).mtimeMs < cutoff) fs.rmSync(file, { force: true });
+    }
+  } catch { }
+}
+
+function refreshPr(dir, branch) {
+  prunePrCaches();
+  let pr = null;
+  try {
+    const out = execSync("gh pr view --json number,statusCheckRollup", {
+      cwd: dir,
+      stdio: ["ignore", "pipe", "ignore"],
+      timeout: 15000,
+    }).toString();
+    const parsed = JSON.parse(out);
+    const counts = { failing: 0, pending: 0, success: 0 };
+    for (const entry of parsed.statusCheckRollup || []) {
+      const kind = classifyCheck(entry);
+      if (kind) counts[kind]++;
+    }
+    pr = { number: parsed.number, ...counts };
+  } catch { }
+  try {
+    fs.mkdirSync(CACHE_DIR, { recursive: true });
+    const base = prCachePath(dir, branch);
+    fs.writeFileSync(`${base}.json`, JSON.stringify({ fetchedAt: Date.now() / 1000, pr }));
+    fs.rmSync(`${base}.lock`, { force: true });
+  } catch { }
+}
+
+function prPart(pr) {
+  if (!pr) return null;
+  const seg = [dim(`#${pr.number}`)];
+  if (pr.failing) seg.push(red(`✗${pr.failing}`));
+  if (pr.pending) seg.push(yellow(`●${pr.pending}`));
+  if (pr.success) seg.push(green(`✓${pr.success}`));
+  return seg.join(" ");
 }
 
 function pace(rl, windowSec) {
@@ -156,7 +237,7 @@ function pacePart(rl, windowSec, w, showReset = true) {
   const deltaTxt = p.delta >= 0 ? `▲${Math.round(p.delta)}%` : `▼${Math.round(-p.delta)}%`;
   const seg = paceColor(`${chars.join("")} ${p.pct}% ${deltaTxt}`, p.delta);
   const reset = showReset ? fmtReset(rl.resets_at, windowSec) : null;
-  return reset ? `${dim(`⟳${reset}`)} ${seg}` : seg;
+  return reset ? `${dim(`⟳ ${reset}`)} ${seg}` : seg;
 }
 
 function fmt(n) {
@@ -247,6 +328,9 @@ function main() {
     if (ins) seg.push(green(`+${ins}`));
     if (del) seg.push(red(`-${del}`));
     parts.push(seg.join(" "));
+
+    const pr = prPart(prStatus(dir, branch));
+    if (pr) parts.push(pr);
   }
 
   const pct = Math.round(((tokens || 0) / limit) * 100);
@@ -267,4 +351,5 @@ function main() {
 }
 
 if (process.argv[2] === "--refresh-usage") refreshUsage();
+else if (process.argv[2] === "--refresh-pr") refreshPr(process.argv[3], process.argv[4]);
 else main();
