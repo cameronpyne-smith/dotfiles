@@ -36,6 +36,33 @@ function usagePart(label, rl) {
   return color(`${label} ${bar(pct)} ${pct}%`, pct);
 }
 
+function weeklyPace(rl) {
+  if (!rl || rl.used_percentage == null || !rl.resets_at) return null;
+  const windowSec = 7 * 24 * 3600;
+  const start = rl.resets_at - windowSec;
+  const frac = Math.min(1, Math.max(0, (Date.now() / 1000 - start) / windowSec));
+  const pct = Math.round(rl.used_percentage);
+  const target = frac * 100;
+  return { pct, target, delta: pct - target, frac };
+}
+
+const paceColor = (s, delta) => {
+  const c = delta > 0 ? 31 : delta > -10 ? 33 : 32;
+  return `\x1b[${c}m${s}\x1b[0m`;
+};
+
+function weeklyPart(rl) {
+  const p = weeklyPace(rl);
+  if (!p) return usagePart("7d", rl);
+  const w = 7;
+  const filled = Math.min(w, Math.max(0, Math.round((p.pct / 100) * w)));
+  const chars = [];
+  for (let i = 0; i < w; i++) chars.push(i < filled ? "█" : "░");
+  chars[Math.min(w - 1, Math.floor(p.frac * w))] = "┊";
+  const deltaTxt = p.delta >= 0 ? `▲${Math.round(p.delta)}%` : `▼${Math.round(-p.delta)}%`;
+  return paceColor(`7d ${chars.join("")} ${p.pct}% ${deltaTxt}`, p.delta);
+}
+
 function fmt(n) {
   if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + "k";
   return String(n);
@@ -113,7 +140,7 @@ function main() {
   if (model) parts.push(orange(model));
 
   const session = usagePart("5h", data?.rate_limits?.five_hour);
-  const week = usagePart("7d", data?.rate_limits?.seven_day);
+  const week = weeklyPart(data?.rate_limits?.seven_day);
   if (session) parts.push(session);
   if (week) parts.push(week);
 
