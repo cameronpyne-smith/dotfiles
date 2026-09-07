@@ -1,9 +1,9 @@
 {
   "includeCoAuthoredBy": false,
   "permissions": {
-    "defaultMode": "acceptEdits"
+    "defaultMode": "auto"
   },
-  "model": "fable",
+  "model": "opus[1m]",
   "statusLine": {
     "type": "command",
     "command": "node ~/.claude/statusline.js"
