@@ -27,3 +27,7 @@ if [ -d "$HOME/.local/bin" ] ; then
 fi
 
 export PATH=$PATH:/usr/local/go/bin
+
+export HF_HOME="$HOME/models/hf"
+export MODELSCOPE_CACHE="$HOME/models/modelscope"
+export TORCH_HOME="$HOME/models/torch"
