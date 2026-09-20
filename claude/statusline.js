@@ -170,7 +170,7 @@ function refreshPr(dir, branch) {
   prunePrCaches();
   let pr = null;
   try {
-    const out = execSync("gh pr view --json number,statusCheckRollup", {
+    const out = execSync("gh pr view --json number,url,statusCheckRollup", {
       cwd: dir,
       stdio: ["ignore", "pipe", "ignore"],
       timeout: 15000,
@@ -182,7 +182,7 @@ function refreshPr(dir, branch) {
       const kind = classifyCheck(entry);
       if (kind) counts[kind]++;
     }
-    pr = { number: parsed.number, ...counts };
+    pr = { number: parsed.number, url: parsed.url, ...counts };
   } catch { }
   try {
     fs.mkdirSync(CACHE_DIR, { recursive: true });
@@ -192,9 +192,11 @@ function refreshPr(dir, branch) {
   } catch { }
 }
 
+const link = (s, url) => (url ? `\x1b]8;;${url}\x1b\\${s}\x1b]8;;\x1b\\` : s);
+
 function prPart(pr) {
   if (!pr) return null;
-  const seg = [dim(`#${pr.number}`)];
+  const seg = [link(dim(`#${pr.number}`), pr.url)];
   if (pr.failing) seg.push(red(`✗${pr.failing}`));
   if (pr.pending) seg.push(yellow(`●${pr.pending}`));
   if (pr.success) seg.push(green(`✓${pr.success}`));

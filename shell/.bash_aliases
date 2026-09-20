@@ -10,6 +10,10 @@ if command -v go.exe >/dev/null 2>&1 && ! command -v go >/dev/null 2>&1; then
     alias go='go.exe'
 fi
 
+if command -v kubectl.exe >/dev/null 2>&1 && ! command -v kubectl >/dev/null 2>&1; then
+    alias kubectl='kubectl.exe'
+fi
+
 # repos under /mnt are Windows-owned: their worktree pointers, line endings and
 # index state belong to Windows git, so dispatch on where the repo lives
 if command -v git.exe >/dev/null 2>&1; then
