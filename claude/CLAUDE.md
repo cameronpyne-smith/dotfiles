@@ -19,6 +19,12 @@ The `vault_*` MCP tools reach my second brain: durable knowledge.
 ## ordo — personal todo daemon
 The `todo_*` MCP tools are my task list. mnemo remembers, ordo orders.
 
-- Anything I say I need to do is a `todo_add`, not a note. Pass the whole sentence as the title and leave the other fields alone: the daemon reads it with a local model and fills in due date, difficulty, recurrence and priority itself. Set a field only when you know something the sentence does not say.
-- `todo_list` before answering anything about what to do next, and re-read it rather than remembering it — fields fill in asynchronously. Reprioritising, planning a week and "what should I focus on" are yours: read the list, then `todo_set`. Editing priority is welcome; inference only ever fills fields that are still empty.
-- When a task comes out of a note, `todo_link` it to that slug — the note is the thinking, the tasks are what is in flight from it. `todo_related` finds the note when you do not know the slug. ordo only reads mnemo; nothing here changes a note.
+**Anything I say I need to do is a `todo_add`, never a note.** Title it with my whole sentence, unedited: a model on the box re-reads that sentence and fills in due date, difficulty, recurrence and priority, so a title you shortened is information it no longer has.
+
+**Set a field when you know something the sentence does not.** I named a deadline earlier in the conversation; you have read the code and know it is a day's work. Context rather than a decision goes in `notes`, which that model reads too. Do not restate what the sentence already says and do not guess: inference only fills fields that are still empty, so whatever you set is final.
+
+**Priority is yours.** It is about my week, the one thing the box cannot see. Reprioritising, planning a week and "what should I focus on" mean `todo_list` and then `todo_set`.
+
+**Read the list rather than recalling it.** `todo_list` before answering anything about what is next; fields appear a second or two after the add.
+
+**`todo_link` a task to the note it came out of.** The note is the thinking, the tasks are what is in flight from it. `todo_related` finds the slug when you do not know it. ordo only reads mnemo; nothing here changes a note.
