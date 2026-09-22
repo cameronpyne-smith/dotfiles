@@ -323,6 +323,13 @@ function main() {
   const { branch, dirty, ahead, behind, ins, del } = gitStatus(dir);
 
   const parts = [];
+
+  const pct = Math.round(((tokens || 0) / limit) * 100);
+  parts.push(color(`${pct}%`, pct));
+
+  const model = data?.model?.display_name;
+  if (model) parts.push(orange(model));
+
   parts.push(cyan(folder));
 
   if (branch) {
@@ -337,12 +344,6 @@ function main() {
     const pr = prPart(prStatus(dir, branch));
     if (pr) parts.push(pr);
   }
-
-  const pct = Math.round(((tokens || 0) / limit) * 100);
-  parts.push(color(`${pct}%`, pct));
-
-  const model = data?.model?.display_name;
-  if (model) parts.push(orange(model));
 
   const usage = [
     pacePart(data?.rate_limits?.five_hour, 5 * 3600, 7),
