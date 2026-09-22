@@ -70,5 +70,10 @@ if [[ -n "$win_home" && -f "$win_home/.kube/config" ]]; then
     link "$win_home/.kube/config" "$HOME/.kube/config"
 fi
 
+if [[ -n "$win_home" && -f "$win_home/AppData/Roaming/ordo/config.toml" ]]; then
+    mkdir -p "$config_dir/ordo"
+    link "$win_home/AppData/Roaming/ordo/config.toml" "$config_dir/ordo/config.toml"
+fi
+
 echo
 echo "Done."
