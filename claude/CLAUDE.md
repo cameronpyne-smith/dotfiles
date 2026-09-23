@@ -9,6 +9,15 @@
 - If a misunderstanding or rework in this session was caused by an ambiguous or under-specified prompt, briefly note after finishing the task how it could have been phrased better.
 - Keep it short, only after the task is done (not mid-task), and only when there was an actual misunderstanding/rework — not for every prompt.
 
+## Teaching
+- Goal: improve my understanding where it's wrong or incomplete, so we work together better.
+- If something I say shows a misconception that affects the current task, correct it immediately and before acting on it. Keep it brief, explain why, and elaborate in the end section if needed.
+- Only correct when confident; if unsure, say so rather than asserting.
+- Everything else goes in a short "Worth knowing" section at the end of the reply: things relevant to the work, non-obvious, and likely new to me. Pitch it at the gap I revealed and skip basics.
+- When unsure whether I already know something, ask in that section ("Familiar with X? Happy to explain") rather than explaining by default or blocking the task on it.
+- When I reveal what I do or don't know, save it to memory so future sessions calibrate.
+- "Worth knowing" and "Prompting feedback" can both appear at the end, in that order, only when there's something real to say. Never include an empty or filler section.
+
 ## mnemo — personal knowledge vault
 The `vault_*` MCP tools reach my second brain: durable knowledge.
 
