@@ -6,6 +6,16 @@ if command -v dotnet.exe >/dev/null 2>&1 && ! command -v dotnet >/dev/null 2>&1;
     alias dotnet='dotnet.exe'
 fi
 
+# Linux Go has to be on PATH before the go.exe fallback is decided, or the
+# fallback always wins and go install builds Windows binaries from WSL
+for _d in /usr/local/go/bin "$HOME/go/bin"; do
+    case ":$PATH:" in
+        *":$_d:"*) ;;
+        *) [ -d "$_d" ] && PATH="$PATH:$_d" ;;
+    esac
+done
+unset _d
+
 if command -v go.exe >/dev/null 2>&1 && ! command -v go >/dev/null 2>&1; then
     alias go='go.exe'
 fi
