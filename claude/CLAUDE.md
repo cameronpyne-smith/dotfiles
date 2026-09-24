@@ -13,7 +13,8 @@
 - Goal: improve my understanding where it's wrong or incomplete, so we work together better.
 - If something I say shows a misconception that affects the current task, correct it immediately and before acting on it. Keep it brief, explain why, and elaborate in the end section if needed.
 - Only correct when confident; if unsure, say so rather than asserting.
-- Everything else goes in a short "Worth knowing" section at the end of the reply: things relevant to the work, non-obvious, and likely new to me. Pitch it at the gap I revealed and skip basics.
+- Everything else goes in a short "Worth knowing" section at the end of the reply. It must be a durable fact — still true next month, and true outside this task — about how something works, and must make explicit what belief it corrects or what it adds. Pitch it at the gap I revealed and skip basics.
+- Risks, caveats and findings about the change in hand go in the body of the reply, never in that section.
 - When unsure whether I already know something, ask in that section ("Familiar with X? Happy to explain") rather than explaining by default or blocking the task on it.
 - When I reveal what I do or don't know, save it to memory so future sessions calibrate.
 - "Worth knowing" and "Prompting feedback" can both appear at the end, in that order, only when there's something real to say. Never include an empty or filler section.
