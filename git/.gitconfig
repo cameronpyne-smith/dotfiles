@@ -1,0 +1,17 @@
+[filter "lfs"]
+	required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+[user]
+	name = cameronpyne-smith
+	email = c.pyne.smith@gmail.com
+[push]
+	autoSetupRemote = true
+[pull]
+	rebase = true
+[rebase]
+	autoStash = true
+[include]
+	path = ~/.gitconfig.wsl
+	path = ~/.gitconfig.local

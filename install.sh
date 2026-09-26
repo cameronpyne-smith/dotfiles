@@ -70,6 +70,20 @@ if [[ -n "$win_home" && -f "$win_home/.kube/config" ]]; then
     link "$win_home/.kube/config" "$HOME/.kube/config"
 fi
 
+# One git config for both sides: under WSL ~/.gitconfig points at the Windows
+# one, which install.ps1 links to the repo, plus the credential helper only
+# WSL can run. Missing includes are ignored, so Windows skips it.
+if [[ -n "$win_home" ]]; then
+    if [[ -e "$win_home/.gitconfig" ]]; then
+        link "$win_home/.gitconfig" "$HOME/.gitconfig"
+    else
+        echo "SKIP  .gitconfig (run install.ps1 on Windows first)"
+    fi
+    link "$script_dir/git/wsl.gitconfig" "$HOME/.gitconfig.wsl"
+else
+    link "$script_dir/git/.gitconfig" "$HOME/.gitconfig"
+fi
+
 if [[ -n "$win_home" && -f "$win_home/AppData/Roaming/ordo/config.toml" ]]; then
     mkdir -p "$config_dir/ordo"
     link "$win_home/AppData/Roaming/ordo/config.toml" "$config_dir/ordo/config.toml"

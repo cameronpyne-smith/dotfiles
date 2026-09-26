@@ -16,6 +16,8 @@ Personal machine configuration, kept under version control.
 | `wezterm/wezterm.lua` | WezTerm config (theme, font, transparency) | `~/.config/wezterm/wezterm.lua` (all platforms) |
 | `windows-terminal/settings.json` | Windows Terminal settings (theme, font, transparency) | Windows Terminal's `settings.json` — location auto-detected (Windows) |
 | `starship/starship.toml` | Starship prompt config | `~/.config/starship.toml` (all platforms) |
+| `git/.gitconfig` | Git config (identity, pull rebases, LFS) | `~/.gitconfig` on Windows and Linux; in WSL `~/.gitconfig` points at the Windows one, so there is one copy |
+| `git/wsl.gitconfig` | Credential helper for WSL: the Windows Git Credential Manager | `~/.gitconfig.wsl` (WSL only, included by `.gitconfig`) |
 
 ## Install
 
@@ -73,4 +75,6 @@ node --test "commands/*.test.ts"
 ## Not tracked
 
 Secrets and machine-local overrides are intentionally git-ignored:
-`.credentials.json`, `settings.local.json`, `*.local.json`.
+`.credentials.json`, `settings.local.json`, `*.local.json`. Machine-specific git
+settings (a work email, say) go in an untracked `~/.gitconfig.local`, which
+`.gitconfig` includes last so it wins.

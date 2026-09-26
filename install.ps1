@@ -125,6 +125,11 @@ else {
     Write-Host "SKIP  settings.json (Windows Terminal not installed)"
 }
 
+# --- Link the git config -----------------------------------------------------
+# WSL's ~/.gitconfig points at this one, so there is a single copy.
+$gitSource = Get-Item -Force (Join-Path $PSScriptRoot 'git\.gitconfig')
+Link-File $gitSource (Join-Path $env:USERPROFILE '.gitconfig')
+
 # --- Link the starship config ------------------------------------------------
 $starshipSource = Get-Item (Join-Path $PSScriptRoot 'starship\starship.toml')
 $configDir = Join-Path $env:USERPROFILE '.config'
