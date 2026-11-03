@@ -89,5 +89,23 @@ if [[ -n "$win_home" && -f "$win_home/AppData/Roaming/ordo/config.toml" ]]; then
     link "$win_home/AppData/Roaming/ordo/config.toml" "$config_dir/ordo/config.toml"
 fi
 
+# tmux plugins, pinned by commit so an update is a deliberate bump here.
+pin() {
+    local url="$1" dir="$2" commit="$3"
+    if [[ ! -d "$dir/.git" ]]; then
+        git clone -q "$url" "$dir"
+    fi
+    if [[ "$(git -C "$dir" rev-parse HEAD)" != "$commit" ]]; then
+        git -C "$dir" fetch -q origin
+        git -C "$dir" checkout -q "$commit"
+    fi
+    echo "PIN   $(basename "$dir") @ ${commit:0:7}"
+}
+
+tmux_plugins="${XDG_DATA_HOME:-$HOME/.local/share}/tmux/plugins"
+mkdir -p "$tmux_plugins"
+pin https://github.com/tmux-plugins/tmux-resurrect.git "$tmux_plugins/tmux-resurrect" cff343cf9e81983d3da0c8562b01616f12e8d548
+pin https://github.com/tmux-plugins/tmux-continuum.git "$tmux_plugins/tmux-continuum" 0698e8f4b17d6454c71bf5212895ec055c578da0
+
 echo
 echo "Done."
