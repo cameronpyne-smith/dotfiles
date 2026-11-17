@@ -31,3 +31,13 @@ export PATH=$PATH:/usr/local/go/bin
 export HF_HOME="$HOME/models/hf"
 export MODELSCOPE_CACHE="$HOME/models/modelscope"
 export TORCH_HOME="$HOME/models/torch"
+. "$HOME/.cargo/env"
+
+if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -n "${XDG_RUNTIME_DIR:-}" ] && command -v ssh-agent >/dev/null 2>&1; then
+    export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+    ssh-add -l >/dev/null 2>&1
+    if [ $? -eq 2 ]; then
+        rm -f "$SSH_AUTH_SOCK"
+        ssh-agent -a "$SSH_AUTH_SOCK" >/dev/null
+    fi
+fi
