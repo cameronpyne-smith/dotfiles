@@ -8,3 +8,6 @@ settings.local.json
 # OS noise
 .DS_Store
 Thumbs.db
+
+# Machine-local
+claude/settings.json
